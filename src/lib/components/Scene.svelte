@@ -1,81 +1,90 @@
 <script lang="ts">
-  import { T } from '@threlte/core'
+  import { T, useThrelte, useTask } from '@threlte/core'
   import { ContactShadows, Float, Grid, OrbitControls } from '@threlte/extras'
+  import { onMount } from 'svelte';
+  import { Vector3 } from 'three'
+
+  const { camera } = useThrelte()
+
+  let positions: any[] = []
+  let renderedPositions: any[] = []
+  let cameraTarget: Vector3
+  let isEnd = false
+
+  onMount(async () => {
+    const data = await fetch(`/api?id=${25544}&s=${300}`)
+    const json = await data.json()
+    if (data.ok) {
+      positions = json.positions
+      let timer = setInterval(() => {
+        if (positions.length > 0) {
+          cameraTarget = new Vector3(
+            3 * (positions[0].sataltitude * 0.001 + 6.371) * Math.sin(positions[0].satlatitude) * Math.cos(positions[0].satlongitude),
+            3 * (positions[0].sataltitude * 0.001 + 6.371) * Math.sin(positions[0].satlatitude) * Math.sin(positions[0].satlongitude),
+            3 * (positions[0].sataltitude * 0.001 + 6.371) * Math.cos(positions[0].satlatitude)
+          )
+          renderedPositions = [...renderedPositions, positions.shift()]
+        } else {
+          clearInterval(timer)
+          isEnd = true
+        }
+      }, 50)
+    }
+  })
+
+  useTask(() => {
+    if (cameraTarget && !isEnd) {
+      camera.current.position.lerp(cameraTarget, 0.1)
+    }
+  })
+
 </script>
 
 <T.PerspectiveCamera
   makeDefault
   position={[-10, 10, 10]}
-  fov={15}
+  fov={60}
 >
   <OrbitControls
-    autoRotate
-    enableZoom={false}
+    autoRotate={false}
     enableDamping
     autoRotateSpeed={0.5}
-    target.y={1.5}
   />
 </T.PerspectiveCamera>
 
 <T.DirectionalLight
   intensity={0.8}
-  position.x={5}
-  position.y={10}
+  position={[5, 2, 0]}
 />
-<T.AmbientLight intensity={0.2} />
+<T.AmbientLight intensity={0.3} />
 
 <Grid
-  position.y={-0.001}
+  position.y={-10}
   cellColor="#ffffff"
   sectionColor="#ffffff"
   sectionThickness={0}
-  fadeDistance={25}
-  cellSize={2}
+  fadeDistance={100}
+  cellSize={10}
+  infiniteGrid={true}
 />
 
-<ContactShadows
-  scale={10}
-  blur={2}
-  far={2.5}
-  opacity={0.5}
-/>
+<T.Mesh position={[0, 0, 0]}>
+  <T.SphereGeometry args={[6.371, 64, 64]} />
+  <T.MeshStandardMaterial color={0xCEC2FF} />
+</T.Mesh>
 
-<Float
-  floatIntensity={1}
-  floatingRange={[0, 1]}
->
-  <T.Mesh
-    position.y={1.2}
-    position.z={-0.75}
-  >
-    <T.BoxGeometry />
-    <T.MeshStandardMaterial color="#0059BA" />
-  </T.Mesh>
-</Float>
+<!-- <T.Mesh position={[0, 1.5, 0]} rotation={[Math.PI/4, 0, 0]}>
+  <T.TorusGeometry args={[1.1, 0.01, 8, 128]} />
+  <T.MeshBasicMaterial color={0xE89005} />
+</T.Mesh> -->
 
-<Float
-  floatIntensity={1}
-  floatingRange={[0, 1]}
->
-  <T.Mesh
-    position={[1.2, 1.5, 0.75]}
-    rotation.x={5}
-    rotation.y={71}
-  >
-    <T.TorusKnotGeometry args={[0.5, 0.15, 100, 12, 2, 3]} />
-    <T.MeshStandardMaterial color="#F85122" />
+{#each renderedPositions as position}
+  <T.Mesh position={[
+    (position.sataltitude * 0.001 + 6.371) * Math.sin(position.satlatitude) * Math.cos(position.satlongitude),
+    (position.sataltitude * 0.001 + 6.371) * Math.sin(position.satlatitude) * Math.sin(position.satlongitude),
+    (position.sataltitude * 0.001 + 6.371) * Math.cos(position.satlatitude)
+  ]}>
+    <T.SphereGeometry args={[0.05, 8, 8]} />
+    <T.MeshBasicMaterial color={0xE89005} />
   </T.Mesh>
-</Float>
-
-<Float
-  floatIntensity={1}
-  floatingRange={[0, 1]}
->
-  <T.Mesh
-    position={[-1.4, 1.5, 0.75]}
-    rotation={[-5, 128, 10]}
-  >
-    <T.IcosahedronGeometry />
-    <T.MeshStandardMaterial color="#F8EBCE" />
-  </T.Mesh>
-</Float>
+{/each}
