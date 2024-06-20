@@ -13,9 +13,27 @@
   let cameraTarget: Vector3
   let isEnd = false
 
-  onMount(async () => {
-
-  })
+  window.predictPath = async (id: number) => {
+    const data = await fetch(`/api?id=${id}&s=${300}`)
+    const json = await data.json()
+    if (data.ok) {
+      renderedPositions = []
+      positions = json.positions
+      let timer = setInterval(() => {
+        if (positions.length > 0) {
+          cameraTarget = new Vector3(
+            3 * (positions[0].sataltitude * 0.001 + 63.71) * Math.sin(positions[0].satlatitude) * Math.cos(positions[0].satlongitude),
+            3 * (positions[0].sataltitude * 0.001 + 63.71) * Math.sin(positions[0].satlatitude) * Math.sin(positions[0].satlongitude),
+            3 * (positions[0].sataltitude * 0.001 + 63.71) * Math.cos(positions[0].satlatitude)
+          )
+          renderedPositions = [...renderedPositions, positions.shift()]
+        } else {
+          clearInterval(timer)
+          isEnd = true
+        }
+      }, 50)
+    }
+  }
 
   useTask(() => {
     if (cameraTarget && !isEnd) {
