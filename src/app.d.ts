@@ -3,6 +3,7 @@
 declare global {
 	interface Window {
 		predictPath(id: number): void;
+		clearPath(): void;
 	}
 	namespace App {
 		// interface Error {}

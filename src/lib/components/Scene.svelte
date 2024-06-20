@@ -5,6 +5,8 @@
   import { Vector3 } from 'three'
   import { XR } from '@threlte/xr'
   import HoshinoSwimsuit from './models/HoshinoSwimsuit.svelte'
+  import { satelliteData } from '$lib/stores'
+  import { list } from '$lib/list'
 
   const { camera } = useThrelte()
 
@@ -13,10 +15,17 @@
   let cameraTarget: Vector3
   let isEnd = false
 
+  window.clearPath = () => {
+    isEnd = true
+    renderedPositions = []
+    positions = []
+  }
+
   window.predictPath = async (id: number) => {
     const data = await fetch(`/api?id=${id}&s=${300}`)
     const json = await data.json()
     if (data.ok) {
+      isEnd = false
       renderedPositions = []
       positions = json.positions
       let timer = setInterval(() => {
@@ -97,3 +106,38 @@
     <T.MeshBasicMaterial color={0xE89005} />
   </T.Mesh>
 {/each}
+
+{#if Object.keys($satelliteData).length > 0}
+  {console.log($satelliteData)}
+  {#each Object.entries($satelliteData) as [key, value]}
+    {#if list[key].model}
+      <svelte:component this={list[key].model} position={[
+        (value.sataltitude * 0.001 + 63.71) * Math.sin(value.satlatitude) * Math.cos(value.satlongitude),
+        (value.sataltitude * 0.001 + 63.71) * Math.sin(value.satlatitude) * Math.sin(value.satlongitude),
+        (value.sataltitude * 0.001 + 63.71) * Math.cos(value.satlatitude)
+      ]} />
+    {:else}
+    <T.Mesh position={[
+      (value.sataltitude * 0.001 + 63.71) * Math.sin(value.satlatitude) * Math.cos(value.satlongitude),
+      (value.sataltitude * 0.001 + 63.71) * Math.sin(value.satlatitude) * Math.sin(value.satlongitude),
+      (value.sataltitude * 0.001 + 63.71) * Math.cos(value.satlatitude)
+    ]}>
+      <T.SphereGeometry args={[0.5, 8, 8]} />
+      <T.MeshBasicMaterial color={0xE89005} />
+    </T.Mesh>
+    {/if}
+    <Text
+      position={[
+        (value.sataltitude * 0.001 + 63.71) * Math.sin(value.satlatitude) * Math.cos(value.satlongitude),
+        (value.sataltitude * 0.001 + 63.71) * Math.sin(value.satlatitude) * Math.sin(value.satlongitude),
+        (value.sataltitude * 0.001 + 63.71) * Math.cos(value.satlatitude)
+      ]}
+      color={0xFFFFFF}
+      fontSize={4}
+      anchorX="left"
+      anchorY="top"
+      textAlign="center"
+      text={key}
+    />
+  {/each}
+{/if}
