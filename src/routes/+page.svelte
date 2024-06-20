@@ -1,20 +1,25 @@
 <script lang="ts">
   import App from '$lib/components/App.svelte'
+  import { XR, VRButton  } from '@threlte/xr'
+  import { list } from '$lib/list'
 </script>
 
-<div>
+<div class="absolute h-screen w-96 p-6 top-0 left-0">
+  <div class="bg-gray-100 rounded-xl w-full h-full p-4 flex flex-col">
+    <span class="text-xl">List</span>
+    dawda
+  </div>
+</div>
+
+<VRButton/>
+
+<div class="h-screen">
   <App />
 </div>
 
 <style>
   :global(body) {
     margin: 0;
-  }
-
-  div {
-    width: 100vw;
-    height: 100vh;
-    background: rgb(13, 19, 32);
-    background: linear-gradient(180deg, rgba(13, 19, 32, 1) 0%, rgba(8, 12, 21, 1) 100%);
+    font-family: monospace;
   }
 </style>
