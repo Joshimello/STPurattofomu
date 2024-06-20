@@ -55,7 +55,7 @@
 </script>
 
 <XR>
-  <HoshinoSwimsuit position={[20, -5, -10]} scale={50}/>
+  <!-- <HoshinoSwimsuit position={[20, -5, -10]} scale={50}/> -->
 </XR>
 
 <T.PerspectiveCamera
